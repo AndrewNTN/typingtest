@@ -4,7 +4,7 @@ from random import sample
 import time
 
 # how many words to type
-num_words = 10
+num_words = 20
 
 # define fonts and colors
 root_color = "#191b25"
@@ -16,6 +16,7 @@ button_color = "#32cb8b"
 text_color = "#fafafa"
 text_entry_color = "#2c2e40"
 stats_color = "#ff9552"
+word_count_color = "#ffd751"
 font = "Lucida Console"
 
 word_list = ["the", "be", "of", "and", "a", "to", "in", "he", "have", "it", "that", "for", "they", "I", "with", "as",
@@ -56,7 +57,26 @@ index = 0
 starting_time = 0
 
 
-# checks if a word is right or wrong
+# functions will change word count
+def word_50():
+    global num_words
+    num_words = 50
+    redo_button()
+
+
+def word_25():
+    global num_words
+    num_words = 25
+    redo_button()
+
+
+def word_10():
+    global num_words
+    num_words = 10
+    redo_button()
+
+
+# checks if a word is right or wrong after every space
 def check_word(event):
     global current_word, wpm, accuracy, start, stats, index, starting_time
     # if the word is right, it becomes green
@@ -64,16 +84,18 @@ def check_word(event):
         correct_words.append(words[current_word])
         text_box.tag_add("correct words", f"1.{index} wordstart", f"1.{index} wordend")
         text_box.tag_config("correct words", foreground=correct_color, background=text_bg_color)
-    # if wrong, it becomes red
+    # if wrong, word becomes red
     else:
         text_box.tag_add("wrong words", f"1.{index} wordstart", f"1.{index} wordend")
         text_box.tag_config("wrong words", foreground=wrong_color, background=text_bg_color)
 
     index += len(words[current_word]) + 1
     current_word += 1
+    # if it is the first time checking a word, it starts the counter
     if start:
         starting_time = time.perf_counter()
         start = False
+    # checks if the user is done, then calculates wpm and accuracy
     if current_word == num_words:
         end_time = time.perf_counter()
         wpm = round(len(correct_words) / ((end_time - starting_time) / 60))
@@ -82,9 +104,7 @@ def check_word(event):
                          text=f"WPM: {wpm} Accuracy: {accuracy}%")
         stats.place(relx=0.5, rely=0.2, relwidth=0.6, relheight=0.1, anchor=CENTER)
 
-    # makes current word purple
-    text_box.tag_add("current word", f"1.{index + 1} wordstart", f"1.{index + 1} wordend")
-    text_box.tag_config("current word", foreground="#9b57ff", background=text_bg_color)
+    # clears text entry box
     text_entry.delete(first=0, last=1000)
 
 
@@ -128,7 +148,7 @@ text_entry.bind("<space>", check_word)
 text_entry.place(relx=0.425, rely=0.87, relwidth=0.8, relheight=0.16, anchor=CENTER)
 text_entry.insert(0, " ")
 
-# text box for words
+# text box to show words
 text_box = tk.Text(text_bg, bd=0, font=(font, 14), wrap=WORD, spacing2=5, bg=text_bg_color, fg=text_color, padx=5,
                    pady=5)
 text_box.place(relx=0.5, rely=0.42, relwidth=0.9, relheight=0.7, anchor=CENTER)
@@ -136,14 +156,22 @@ text_box.config(state=NORMAL)
 text_box.insert(INSERT, " ".join(words))
 text_box.config(state=DISABLED)
 
+# menu to select word count
+
+word_count = tk.Menubutton(root, bd=0, font=(font, 12), bg=root_color, fg=word_count_color,
+                           activebackground=text_bg_color, activeforeground=word_count_color, text="Word Count")
+word_count.place(relx=0.17, rely=0.34, relwidth=0.115, relheight=0.06, anchor=CENTER)
+options = tk.Menu(word_count, bd=0, activeborderwidth=15, font=(font, 14), bg=root_color, fg=word_count_color,
+                  tearoff=0)
+word_count.config(menu=options)
+options.add_command(label="10", command=word_10)
+options.add_command(label="25", command=word_25)
+options.add_command(label="50", command=word_50)
+
 # wpm and acc label
 stats = tk.Label(root, bd=0, font=(font, 15), bg=root_color, fg=stats_color,
                  text=f"WPM: {wpm} Accuracy: {accuracy}")
 stats.place(relx=0.5, rely=0.2, relwidth=0.6, relheight=0.1, anchor=CENTER)
-
-# makes first word purple
-text_box.tag_add("current word", f"1.{index+1} wordstart", f"1.{index+1} wordend")
-text_box.tag_config("current word", foreground="#9b57ff", background=text_bg_color)
 
 # run root windows main loop
 root.mainloop()
